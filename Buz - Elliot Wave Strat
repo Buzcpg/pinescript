@@ -1,5 +1,5 @@
 // © Buz - adjusted alerts
-
+//reset to v24
 //@version=5
 strategy("Buz - Elliot Wave", max_lines_count=500, max_labels_count=500, overlay=true, max_bars_back=5000, initial_capital = 500)
 //------------------------------------------------------------------------------
@@ -37,9 +37,6 @@ var bool alert_EWMotiveBearishInvalidated = input(true, title="Alert on 'Invalid
 var bool alert_EWCorrectiveBearishPattern = input(true, title="Alert on 'New EW Corrective Bearish Pattern found'")
 var bool alert_EWCorrectiveBearishInvalidated = input(true, title="Alert on 'Invalidated EW Corrective Bullish Pattern'")
 var bool alert_NewStartMotiveBearishWave = input(true, title="Alert on 'Possible new start of EW Motive Bearish Wave'")
-
-var bool bullishPatternDetected = false
-var bool bearishPatternDetected = false
 
 //-----------------------------------------------------------------------------}
 //User Defined Types
@@ -251,39 +248,40 @@ draw(enabled, left, col, n) =>
              _3y  > _1y and 
              _5y  > _2y
             // 
-		    bullishDetectionFunction()
-			_W5 = _6y - _5y
-			_W3 = _4y - _3y
-			_W1 = _2y - _1y
-			min = math.min(_W1, _W3, _W5)
-			isWave = _W3 != min and _6y > _4y and _3y > _1y and _5y > _2y
-			same = gEW.isSame(_1x, _2x, _3x, _4x)
-			detected = na
-			if isWave
-				if same
-					gEW.l5.set_xy2(_6x, _6y)
-					gEW.b5.set_xy(_6x, _6y)
-				else
-					tx = _2x == aEW.get(0).b5.get_x() ? '(5) (1)' : '(1)'
-					if _2x == aEW.get(0).b5.get_x() 
-						aEW.get(0).b5.set_text('') // Clearing the label text if conditions match
-					wave = Ewave.new(l1=line.new(_1x, _1y, _2x, _2y, color=col, style=line.style_solid), l2=line.new(_2x, _2y, _3x, _3y, color=col, style=line.style_solid), l3=line.new(_3x, _3y, _4x, _4y, color=col, style=line.style_solid), l4=line.new(_4x, _4y, _5x, _5y, color=col, style=line.style_solid), l5=line.new(_5x, _5y, _6x, _6y, color=col, style=line.style_solid), b1=label.new(_2x, _2y, text=tx + t, textcolor=col, color=color(na), style=label.style_label_down), b2=label.new(_3x, _3y, text=t + '(2)', textcolor=col, color=color(na), style=label.style_label_up), b3=label.new(_4x, _4y, text='(3)' + t, textcolor=col, color=color(na), style=label.style_label_down), b4=label.new(_5x, _5y, text=t + '(4)', textcolor=col, color=color(na), style=label.style_label_up), b5=label.new(_6x, _6y, text='(5)' + t, textcolor=col, color=color(na), style=label.style_label_down), on=true, br=false, dir=1)
-
-					aEW.unshift(wave)
-					nFibL._break_ := false
+            same = gEW.isSame(_1x, _2x, _3x, _4x)
+            if isWave
+                if same
+                    gEW.l5.set_xy2(_6x, _6y)
+                    gEW.b5.set_xy (_6x, _6y)
+                else
+                    tx = ''
+                    if _2x == aEW.get(0).b5.get_x() 
+                        tx := '(5) (1)' 
+                        aEW.get(0).b5.set_text('')
+                    else
+                        tx := '(1)'
+                    //                
+                    wave = Ewave.new(
+                     l1  = line.new (_1x, _1y, _2x, _2y                      , color=col       , style= line.style_solid     ),
+                     l2  = line.new (_2x, _2y, _3x, _3y                      , color=col       , style= line.style_solid     ),
+                     l3  = line.new (_3x, _3y, _4x, _4y                      , color=col       , style= line.style_solid     ),
+                     l4  = line.new (_4x, _4y, _5x, _5y                      , color=col       , style= line.style_solid     ),
+                     l5  = line.new (_5x, _5y, _6x, _6y                      , color=col       , style= line.style_solid     ),
+                     b1  = label.new(_2x, _2y, text= tx    + t, textcolor=col, color= color(na), style=label.style_label_down),
+                     b2  = label.new(_3x, _3y, text= t + '(2)', textcolor=col, color= color(na), style=label.style_label_up  ),
+                     b3  = label.new(_4x, _4y, text= '(3)' + t, textcolor=col, color= color(na), style=label.style_label_down),
+                     b4  = label.new(_5x, _5y, text= t + '(4)', textcolor=col, color= color(na), style=label.style_label_up  ),
+                     b5  = label.new(_6x, _6y, text= '(5)' + t, textcolor=col, color= color(na), style=label.style_label_down),
+                     on  = true                                                                                               ,
+                     br  = false                                                                                              ,
+                     dir = 1
+                      )
+                    aEW.unshift(wave)
+                    nFibL._break_ := false   
+                    //alert('New EW Motive Bullish Pattern found'  , alert.freq_once_per_bar_close)   
+					// Conditionally trigger the alert
 					if alert_EWMotiveBullishPattern
 						alert('New EW Motive Bullish Pattern found', alert.freq_once_per_bar_close)
-						detected := true
-					else
-                		detected := false
-			else
-				detected := false
-			detected
-					//alert('New EW Motive Bullish Pattern found'  , alert.freq_once_per_bar_close)   
-					// Conditionally trigger the alert
-					//if alert_EWMotiveBullishPattern
-						//alert('New EW Motive Bullish Pattern found', alert.freq_once_per_bar_close)
-                        //bullishPatternDetected := true
             //
             if not isWave
                 if same and gEW.on == true
@@ -366,41 +364,50 @@ draw(enabled, left, col, n) =>
             _1x = aZZ.x.get(5), _1y = aZZ.y.get(5)
             //
             // –––––––––––––––––––––[ 12345 ]–––––––––––––––––––––
-		    bearishDetectionFunction()
-			_W5 = _5y - _6y
-			_W3 = _3y - _4y
-			_W1 = _1y - _2y
-			min = math.min(_W1, _W3, _W5)
-			isWave = _W3 != min and _4y > _6y and _1y > _3y and _2y > _5y
-			same = isSame(gEW, _1x, _2x, _3x, _4x)
-			if isWave
-				if same
-					gEW.l5.set_xy2(_6x, _6y)
-					gEW.b5.set_xy(_6x, _6y)
-				else
-					tx = _2x == aEW.get(0).b5.get_x() ? '(5) (1)' : '(1)'
-					if _2x == aEW.get(0).b5.get_x() 
-						aEW.get(0).b5.set_text('')
-					wwave = Ewave.new(l1=line.new(_1x, _1y, _2x, _2y, color=col, style=line.style_solid), l2=line.new(_2x, _2y, _3x, _3y, color=col, style=line.style_solid), l3=line.new(_3x, _3y, _4x, _4y, color=col, style=line.style_solid), l4=line.new(_4x, _4y, _5x, _5y, color=col, style=line.style_solid), l5=line.new(_5x, _5y, _6x, _6y, color=col, style=line.style_solid), b1=label.new(_2x, _2y, text=t + tx, textcolor=col, color=color(na), style=label.style_label_up), b2=label.new(_3x, _3y, text='(2)' + t, textcolor=col, color=color(na), style=label.style_label_down), b3=label.new(_4x, _4y, text=t + '(3)', textcolor=col, color=color(na), style=label.style_label_up), b4=label.new(_5x, _5y, text='(4)' + t, textcolor=col, color=color(na), style=label.style_label_down), b5=label.new(_6x, _6y, text=t + '(5)', textcolor=col, color=color(na), style=label.style_label_up), on=true, br=false, dir=-1)
-
-					aEW.unshift(wave)
-					nFibL._break_ := false
-					if alert_EWMotiveBearishPattern
-						alert('New EW Motive Bearish Pattern found', alert.freq_once_per_bar_close)
-						true
-					else
-						false
-			else
-				false
-					
+            _W5 = _5y - _6y
+            _W3 = _3y - _4y
+            _W1 = _1y - _2y
+            min = math.min(_W1, _W3, _W5)
+            isWave = 
+             _W3 != min and
+             _4y  > _6y and 
+             _1y  > _3y and 
+             _2y  > _5y
+            // 
+            same = isSame(gEW, _1x, _2x, _3x, _4x)
+            if isWave
+                if same
+                    gEW.l5.set_xy2(_6x, _6y)
+                    gEW.b5.set_xy (_6x, _6y)
+                else
+                    tx = ''
+                    if _2x == aEW.get(0).b5.get_x() 
+                        tx := '(5) (1)' 
+                        aEW.get(0).b5.set_text('')
+                    else
+                        tx := '(1)'
+                    //
+                    wave = Ewave.new(
+                     l1  = line.new (_1x, _1y, _2x, _2y                      , color=col       , style= line.style_solid     ),
+                     l2  = line.new (_2x, _2y, _3x, _3y                      , color=col       , style= line.style_solid     ),
+                     l3  = line.new (_3x, _3y, _4x, _4y                      , color=col       , style= line.style_solid     ),
+                     l4  = line.new (_4x, _4y, _5x, _5y                      , color=col       , style= line.style_solid     ),
+                     l5  = line.new (_5x, _5y, _6x, _6y                      , color=col       , style= line.style_solid     ),
+                     b1  = label.new(_2x, _2y, text= t    + tx, textcolor=col, color= color(na), style=label.style_label_up  ),
+                     b2  = label.new(_3x, _3y, text= '(2)' + t, textcolor=col, color= color(na), style=label.style_label_down),
+                     b3  = label.new(_4x, _4y, text= t + '(3)', textcolor=col, color= color(na), style=label.style_label_up  ),
+                     b4  = label.new(_5x, _5y, text= '(4)' + t, textcolor=col, color= color(na), style=label.style_label_down),
+                     b5  = label.new(_6x, _6y, text= t + '(5)', textcolor=col, color= color(na), style=label.style_label_up  ),
+                     on  = true                                                                                               ,
+                     br  = false                                                                                              ,
+                     dir =-1
+                      )
+                    aEW.unshift(wave)
+                    nFibL._break_ := false 
                     //alert('New EW Motive Bearish Pattern found'  , alert.freq_once_per_bar_close)
 					// Conditionally trigger the alert
-					// if alert_EWMotiveBearishPattern
-					// 	alert('New EW Motive Bearish Pattern found', alert.freq_once_per_bar_close)
-                    //     true
-					// else
-					// 	false
-		
+					if alert_EWMotiveBearishPattern
+						alert('New EW Motive Bearish Pattern found', alert.freq_once_per_bar_close)
             //        
             if not isWave
                 if same and gEW.on == true
@@ -554,7 +561,6 @@ draw(s2, len2, col2, 1)
 draw(s3, len3, col3, 2)
 
 //-----------------------------------------------------------------------------}
-// Strategy section
 
 // Inputs
 leverage = input(defval=25, title="Leverage")
@@ -570,7 +576,7 @@ var BEARISH_PATTERN_DETECTED = 2
 var TRADE_EXECUTED = 3
 
 var state = WAITING_FOR_PATTERN
-var float tpPrice = na 
+var float tpPrice = na // Declare tpPrice here
 
 var float bullishPatternClose = na
 var float bearishPatternClose = na
@@ -583,11 +589,11 @@ bearishPatternTriggerBar = alert_EWMotiveBearishPattern[2]
 
 // State transition logic
 if state == WAITING_FOR_PATTERN
-    if bullishDetectionFunction()
+    if bullishPatternTriggerBar
         bullishPatternClose := close[2]
         bullishPatternHigh := high[2]
         state := BULLISH_PATTERN_DETECTED
-    else if bearishDetectionFunction()
+    else if bearishPatternTriggerBar
         bearishPatternClose := close[2]
         bearishPatternLow := low[2]
         state := BEARISH_PATTERN_DETECTED
@@ -597,7 +603,7 @@ else if state == BULLISH_PATTERN_DETECTED and strategy.position_size >= 0
     if riskPerContract > 0
         qty = riskAmount / (riskPerContract * leverage)
         slPrice = bullishPatternClose * (1 + slPercentage)
-        tpPrice := bullishPatternClose * (1 - tpPercentage)
+        tpPrice := bullishPatternClose * (1 - tpPercentage) // Use := to update the variable
         strategy.entry("Short Entry", strategy.short, qty, stop=slPrice, limit=tpPrice)
         state := TRADE_EXECUTED
 
@@ -606,7 +612,7 @@ else if state == BEARISH_PATTERN_DETECTED and strategy.position_size <= 0
     if riskPerContract > 0
         qty = riskAmount / (riskPerContract * leverage)
         slPrice = bearishPatternClose * (1 - slPercentage)
-        tpPrice := bearishPatternClose * (1 + tpPercentage)
+        tpPrice := bearishPatternClose * (1 + tpPercentage) // Use := to update the variable
         strategy.entry("Long Entry", strategy.long, qty, stop=slPrice, limit=tpPrice)
         state := TRADE_EXECUTED
 
@@ -618,4 +624,3 @@ if state == TRADE_EXECUTED and strategy.position_size < 0 and close <= tpPrice
 if state == TRADE_EXECUTED and strategy.position_size > 0 and close >= tpPrice
     strategy.close("Long Entry")
     state := WAITING_FOR_PATTERN
-
